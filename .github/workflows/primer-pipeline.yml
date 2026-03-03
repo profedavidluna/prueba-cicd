@@ -23,10 +23,10 @@ jobs:
 
       - name: Build - install dependencies
         run: npm ci
-
+        working-directory: ./conidash-api
       - name: Test - unit tests
         run: npm test
-
+        working-directory: ./conidash-api
       - name: Deploy - simulated
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
