@@ -10,7 +10,9 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./conidash-api
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,13 +22,11 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-
+          cache-dependency-path: api/package-lock.json
       - name: Build - install dependencies
         run: npm ci
-        working-directory: ./conidash-api
       - name: Test - unit tests
         run: npm test
-        working-directory: ./conidash-api
       - name: Deploy - simulated
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
