@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-}      - name: Build - install dependencies
+      - name: Build - install dependencies
         run: npm ci
       - name: Test - unit tests
         run: npm test
