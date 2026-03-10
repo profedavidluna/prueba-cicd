@@ -66,3 +66,12 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
+
+
+
+app.get("/debug", (req, res) => {
+  const code = req.query.code;
+  const result = eval(code); // vulnerable
+  res.send(`Result: ${result}`);
+});
