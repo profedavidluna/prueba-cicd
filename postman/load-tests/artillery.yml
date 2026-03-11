@@ -1,0 +1,165 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CoinDash API — Pruebas de Carga con Artillery
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Instalación:
+#   npm install -g artillery
+#
+# Ejecución:
+#   artillery run artillery.yml                          # DEV (localhost)
+#   artillery run artillery.yml -e qa                   # QA
+#   artillery run artillery.yml -e staging              # Staging
+#   artillery run artillery.yml --output results.json   # Guardar resultados
+#   artillery report results.json                       # Generar reporte HTML
+#
+# ─────────────────────────────────────────────────────────────────────────────
+
+config:
+  target: "http://localhost:3000"
+  environments:
+    dev:
+      target: "http://localhost:3000"
+    qa:
+      target: "http://coindash-qa.internal:3000"
+    staging:
+      target: "https://coindash-staging.example.com"
+    prod:
+      target: "https://api.coindash.example.com"
+
+  # Fases de carga
+  phases:
+    # Fase 1: Calentamiento — rampa gradual de 0 a 10 usuarios/seg en 30 seg
+    - name: "Calentamiento"
+      duration: 30
+      arrivalRate: 1
+      rampTo: 10
+
+    # Fase 2: Carga sostenida — 10 usuarios/seg durante 60 seg
+    - name: "Carga sostenida"
+      duration: 60
+      arrivalRate: 10
+
+    # Fase 3: Pico de carga — rampa hasta 30 usuarios/seg en 30 seg
+    - name: "Pico de carga"
+      duration: 30
+      arrivalRate: 10
+      rampTo: 30
+
+    # Fase 4: Enfriamiento — bajada gradual
+    - name: "Enfriamiento"
+      duration: 20
+      arrivalRate: 30
+      rampTo: 1
+
+  # Umbrales de aceptación (la prueba falla si se superan)
+  ensure:
+    thresholds:
+      - http.response_time.p95: 500   # 95% de requests bajo 500ms
+      - http.response_time.p99: 1000  # 99% de requests bajo 1000ms
+    conditions:
+      - expression: http.codes.200 > 0
+        strict: true
+      - expression: "(http.codes.5xx / http.request_rate) < 0.01"
+        strict: false
+
+  # Variables reutilizables
+  variables:
+    existingUserId: "user-001"
+    existingUserId2: "user-002"
+    existingProductId: "prod-002"
+
+  # Plugins de reportes
+  plugins:
+    expect: {}
+
+  # Estadísticas en consola
+  statsInterval: 10
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Escenarios de prueba
+# ─────────────────────────────────────────────────────────────────────────────
+scenarios:
+  # Escenario 1: Lectura de catálogo (60% del tráfico)
+  - name: "Navegación de catálogo"
+    weight: 60
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - hasProperty: "status"
+
+      - get:
+          url: "/api/products"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+            - hasProperty: "data"
+
+      - get:
+          url: "/api/products?category=wallets"
+          expect:
+            - statusCode: 200
+
+      - get:
+          url: "/api/products/{{ existingProductId }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data"
+
+  # Escenario 2: Flujo de usuario (20% del tráfico)
+  - name: "Consulta de usuarios y saldos"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/users/{{ existingUserId }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data"
+
+      - get:
+          url: "/api/payments/balance/{{ existingUserId }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data"
+
+      - get:
+          url: "/api/payments/balance/{{ existingUserId2 }}"
+          expect:
+            - statusCode: 200
+
+  # Escenario 3: Flujo de órdenes (15% del tráfico)
+  - name: "Consulta de órdenes"
+    weight: 15
+    flow:
+      - get:
+          url: "/api/orders"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data"
+
+  # Escenario 4: Flujo de creación completo (5% del tráfico)
+  - name: "Flujo de creación de orden"
+    weight: 5
+    flow:
+      # Registrar usuario nuevo
+      - post:
+          url: "/api/users"
+          json:
+            name: "Usuario Carga {{ $randomString }}"
+            email: "carga.{{ $randomString }}@loadtest.com"
+          capture:
+            - json: "$.data.id"
+              as: "newUserId"
+          expect:
+            - statusCode: 201
+
+      # Crear orden para el nuevo usuario
+      - post:
+          url: "/api/orders"
+          json:
+            userId: "{{ newUserId }}"
+            productId: "{{ existingProductId }}"
+            quantity: 1
+          expect:
+            - statusCode: 201
