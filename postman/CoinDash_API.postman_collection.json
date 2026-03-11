@@ -1,0 +1,1341 @@
+{
+  "info": {
+    "_postman_id": "coindash-api-collection-v1",
+    "name": "CoinDash API",
+    "description": "# 🪙 CoinDash API — Colección Completa\n\nColección oficial de Postman para la **CoinDash API**, una API REST para el manejo de micropagos con monedas digitales.\n\n## Entornos disponibles\n\nImporta los archivos de entorno para cada stage:\n- `CoinDash_DEV.postman_environment.json`\n- `CoinDash_QA.postman_environment.json`\n- `CoinDash_STAGING.postman_environment.json`\n- `CoinDash_PROD.postman_environment.json`\n\n## Estructura\n\n- **🏥 Health** — Estado y disponibilidad de la API\n- **📦 Products** — Gestión de productos del catálogo\n- **👤 Users** — Registro y consulta de usuarios\n- **🛒 Orders** — Creación y consulta de órdenes\n- **💸 Payments** — Micropagos y consulta de saldos\n\n## Variables dinámicas\n\nAlgunos tests utilizan `pm.environment.set()` para compartir IDs entre peticiones. Ejecuta las colecciones en orden para que funcionen correctamente los tests encadenados.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health",
+      "description": "Endpoints para verificar el estado y disponibilidad del servicio.",
+      "item": [
+        {
+          "name": "GET Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica que el servicio esté activo y funcionando correctamente.\n\n**Respuesta esperada:**\n```json\n{\n  \"status\": \"ok\",\n  \"service\": \"coindash-api\",\n  \"version\": \"1.0.0\",\n  \"timestamp\": \"2024-01-01T00:00:00.000Z\"\n}\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type es JSON', function () {",
+                  "    pm.response.to.have.header('Content-Type');",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene status ok', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('ok');",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene service coindash-api', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.service).to.eql('coindash-api');",
+                  "});",
+                  "",
+                  "pm.test('Respuesta incluye version', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.version).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test('Respuesta incluye timestamp ISO', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.timestamp).to.match(/^\\d{4}-\\d{2}-\\d{2}T/);",
+                  "});",
+                  "",
+                  "pm.test('Tiempo de respuesta menor a 500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Health OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/health",
+                  "host": ["{{base_url}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"service\": \"coindash-api\",\n  \"version\": \"1.0.0\",\n  \"timestamp\": \"2024-01-01T00:00:00.000Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📦 Products",
+      "description": "Endpoints para gestionar el catálogo de productos de CoinDash.\n\n**Productos de prueba disponibles:**\n- `prod-001` — CoinDash Premium Wallet (wallets, 50 COIN)\n- `prod-002` — Pack Micropagos Starter (packs, 10 USD)\n- `prod-003` — API Access Pro (services, 25 USD)",
+      "item": [
+        {
+          "name": "GET Listar todos los productos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Retorna todos los productos disponibles en el catálogo.\n\n**Respuesta esperada:**\n```json\n{\n  \"success\": true,\n  \"data\": [...],\n  \"total\": 3\n}\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('data es un array', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('total es un número', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.total).to.be.a('number');",
+                  "    pm.expect(json.total).to.eql(json.data.length);",
+                  "});",
+                  "",
+                  "pm.test('Cada producto tiene los campos requeridos', function () {",
+                  "    const json = pm.response.json();",
+                  "    json.data.forEach(function(product) {",
+                  "        pm.expect(product).to.have.property('id');",
+                  "        pm.expect(product).to.have.property('name');",
+                  "        pm.expect(product).to.have.property('price');",
+                  "        pm.expect(product).to.have.property('currency');",
+                  "        pm.expect(product).to.have.property('stock');",
+                  "        pm.expect(product).to.have.property('category');",
+                  "    });",
+                  "});",
+                  "",
+                  "// Guardar el primer ID para pruebas posteriores",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.length > 0) {",
+                  "    pm.environment.set('product_id', json.data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Productos listados correctamente",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/products",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "products"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"prod-001\",\n      \"name\": \"CoinDash Premium Wallet\",\n      \"description\": \"Billetera digital segura con soporte multi-moneda\",\n      \"price\": 50,\n      \"currency\": \"COIN\",\n      \"stock\": 100,\n      \"category\": \"wallets\"\n    }\n  ],\n  \"total\": 3\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET Filtrar productos por categoría",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products?category=wallets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "wallets",
+                  "description": "Categoría a filtrar (wallets, packs, services)"
+                }
+              ]
+            },
+            "description": "Filtra productos por categoría usando query param.\n\n**Categorías disponibles:** `wallets`, `packs`, `services`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Todos los productos son de la categoría wallets', function () {",
+                  "    const json = pm.response.json();",
+                  "    json.data.forEach(function(product) {",
+                  "        pm.expect(product.category).to.eql('wallets');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('total coincide con la longitud del array', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.total).to.eql(json.data.length);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Producto por ID (exitoso)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "{{product_id}}"]
+            },
+            "description": "Obtiene un producto específico por su ID.\n\n**Parámetros:**\n- `product_id` (variable de entorno): ID del producto a consultar\n\n**IDs de prueba:** `prod-001`, `prod-002`, `prod-003`"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Usar product_id del entorno o usar valor por defecto",
+                  "if (!pm.environment.get('product_id')) {",
+                  "    pm.environment.set('product_id', 'prod-001');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('data contiene el producto', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "    pm.expect(json.data.id).to.eql(pm.environment.get('product_id'));",
+                  "});",
+                  "",
+                  "pm.test('Producto tiene todos los campos requeridos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.all.keys('id', 'name', 'description', 'price', 'currency', 'stock', 'category');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Producto por ID (no encontrado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/prod-inexistente",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "prod-inexistente"]
+            },
+            "description": "Intenta obtener un producto con un ID que no existe. Debe retornar 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Respuesta incluye mensaje de error', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.be.a('string');",
+                  "    pm.expect(json.message).to.include('no encontrado');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Crear producto (exitoso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"CoinDash Enterprise Suite\",\n  \"description\": \"Suite completa para empresas con soporte dedicado\",\n  \"price\": 199,\n  \"currency\": \"USD\",\n  \"stock\": 50,\n  \"category\": \"services\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Crea un nuevo producto en el catálogo.\n\n**Body requerido:**\n- `name` (string): Nombre del producto\n- `price` (number): Precio del producto\n- `currency` (string): Moneda (USD, COIN, etc.)\n\n**Body opcional:**\n- `description` (string): Descripción del producto\n- `stock` (number): Stock disponible\n- `category` (string): Categoría del producto"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Producto creado tiene ID generado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.id).to.be.a('string');",
+                  "    pm.expect(json.data.id).to.include('prod-');",
+                  "});",
+                  "",
+                  "pm.test('Producto creado tiene los datos enviados', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.name).to.eql('CoinDash Enterprise Suite');",
+                  "    pm.expect(json.data.price).to.eql(199);",
+                  "    pm.expect(json.data.currency).to.eql('USD');",
+                  "});",
+                  "",
+                  "// Guardar el ID del producto creado para pruebas posteriores",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "    pm.environment.set('created_product_id', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Crear producto (campos requeridos faltantes)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Producto sin precio ni moneda\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            },
+            "description": "Intenta crear un producto sin los campos requeridos. Debe retornar 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Respuesta incluye mensaje de validación', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.be.a('string');",
+                  "    pm.expect(json.message).to.include('requeridos');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "description": "Endpoints para la gestión de usuarios de CoinDash.\n\n**Usuarios de prueba disponibles:**\n- `user-001` — Ana García (balance: 500 COIN)\n- `user-002` — Carlos López (balance: 250 COIN)",
+      "item": [
+        {
+          "name": "GET Usuario por ID (exitoso)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            },
+            "description": "Obtiene los datos públicos de un usuario por su ID.\n\n**Nota de seguridad:** La respuesta NO incluye el email del usuario.\n\n**IDs de prueba:** `user-001`, `user-002`"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Usar user_id del entorno o usar valor por defecto",
+                  "if (!pm.environment.get('user_id')) {",
+                  "    pm.environment.set('user_id', 'user-001');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('data contiene el usuario', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "    pm.expect(json.data.id).to.eql(pm.environment.get('user_id'));",
+                  "});",
+                  "",
+                  "pm.test('Respuesta no expone el email (seguridad)', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.not.have.property('email');",
+                  "});",
+                  "",
+                  "pm.test('Usuario tiene id, name, balance y currency', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.all.keys('id', 'name', 'balance', 'currency');",
+                  "});",
+                  "",
+                  "pm.test('balance es un número no negativo', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.balance).to.be.a('number');",
+                  "    pm.expect(json.data.balance).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Usuario por ID (no encontrado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/user-inexistente",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "user-inexistente"]
+            },
+            "description": "Intenta obtener un usuario con un ID que no existe. Debe retornar 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Respuesta incluye mensaje de error', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.be.a('string');",
+                  "    pm.expect(json.message).to.include('no encontrado');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Registrar usuario (exitoso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Laura Martínez\",\n  \"email\": \"laura.martinez.{{$timestamp}}@example.com\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Registra un nuevo usuario en el sistema.\n\n**Body requerido:**\n- `name` (string): Nombre completo del usuario\n- `email` (string): Email único del usuario\n\n**Comportamiento:** El nuevo usuario recibe un balance inicial de 100 COIN."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Generar un email único para evitar conflictos en pruebas repetidas",
+                  "const timestamp = Date.now();",
+                  "pm.environment.set('test_user_email', `testuser.${timestamp}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Usuario creado tiene ID generado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.id).to.be.a('string');",
+                  "    pm.expect(json.data.id).to.include('user-');",
+                  "});",
+                  "",
+                  "pm.test('Usuario nuevo tiene balance inicial de 100', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.balance).to.eql(100);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta no expone email (seguridad)', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.not.have.property('email');",
+                  "});",
+                  "",
+                  "// Guardar el ID del usuario creado",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "    pm.environment.set('created_user_id', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Registrar usuario (email duplicado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana García Duplicada\",\n  \"email\": \"ana@example.com\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Intenta registrar un usuario con un email ya existente. Debe retornar 409 Conflict."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409 Conflict', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica email ya registrado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('registrado');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Registrar usuario (campos faltantes)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Solo Nombre Sin Email\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Intenta registrar un usuario sin todos los campos requeridos. Debe retornar 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica campos requeridos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('requeridos');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🛒 Orders",
+      "description": "Endpoints para la gestión de órdenes de compra.\n\nUna orden requiere un usuario y un producto válidos con stock disponible.",
+      "item": [
+        {
+          "name": "GET Listar todas las órdenes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Retorna todas las órdenes registradas en el sistema."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('data es un array', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('total coincide con la longitud del array', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.total).to.eql(json.data.length);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Orden por ID (no encontrada)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/order-inexistente",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "order-inexistente"]
+            },
+            "description": "Intenta obtener una orden con un ID que no existe. Debe retornar 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Respuesta incluye mensaje de error', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Crear orden (exitoso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"productId\": \"prod-002\",\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Crea una nueva orden de compra.\n\n**Body requerido:**\n- `userId` (string): ID del usuario que realiza la compra\n- `productId` (string): ID del producto a comprar\n- `quantity` (number): Cantidad de unidades\n\n**Comportamiento:** Al crear la orden se descuenta el stock del producto."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('user_id')) {",
+                  "    pm.environment.set('user_id', 'user-001');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Orden creada tiene ID generado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.id).to.be.a('string');",
+                  "    pm.expect(json.data.id).to.include('order-');",
+                  "});",
+                  "",
+                  "pm.test('Orden tiene status pending', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.status).to.eql('pending');",
+                  "});",
+                  "",
+                  "pm.test('Orden tiene los campos correctos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('userId');",
+                  "    pm.expect(json.data).to.have.property('productId');",
+                  "    pm.expect(json.data).to.have.property('quantity');",
+                  "    pm.expect(json.data).to.have.property('total');",
+                  "    pm.expect(json.data).to.have.property('createdAt');",
+                  "});",
+                  "",
+                  "pm.test('Total es calculado correctamente (precio * cantidad)', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.total).to.eql(json.data.unitPrice * json.data.quantity);",
+                  "});",
+                  "",
+                  "// Guardar el ID de la orden creada",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "    pm.environment.set('order_id', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Orden por ID (exitoso)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            },
+            "description": "Obtiene una orden específica por su ID. Ejecutar después de 'POST Crear orden'."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('data contiene la orden', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "    pm.expect(json.data.id).to.eql(pm.environment.get('order_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Crear orden (usuario no encontrado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user-inexistente\",\n  \"productId\": \"prod-001\",\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Intenta crear una orden con un usuario que no existe. Debe retornar 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Crear orden (campos requeridos faltantes)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user-001\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Intenta crear una orden sin todos los campos requeridos. Debe retornar 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica campos requeridos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('requeridos');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "💸 Payments",
+      "description": "Endpoints para micropagos y consulta de saldos.\n\n**Flujo típico:**\n1. Consultar saldo del remitente\n2. Enviar micropago\n3. Verificar que los saldos se actualizaron correctamente",
+      "item": [
+        {
+          "name": "GET Consultar saldo (exitoso)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/balance/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "balance", "{{user_id}}"]
+            },
+            "description": "Consulta el saldo actual de un usuario.\n\n**IDs de prueba:** `user-001` (500 COIN), `user-002` (250 COIN)"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('user_id')) {",
+                  "    pm.environment.set('user_id', 'user-001');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('data tiene userId, balance y currency', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.all.keys('userId', 'balance', 'currency');",
+                  "});",
+                  "",
+                  "pm.test('balance es un número no negativo', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.balance).to.be.a('number');",
+                  "    pm.expect(json.data.balance).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "// Guardar el saldo para verificar después de un pago",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('user_balance_before', json.data.balance);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Consultar saldo (usuario no encontrado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/payments/balance/user-inexistente",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "balance", "user-inexistente"]
+            },
+            "description": "Intenta consultar el saldo de un usuario que no existe. Debe retornar 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Enviar micropago (exitoso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromUserId\": \"{{user_id}}\",\n  \"toUserId\": \"{{user_id_2}}\",\n  \"amount\": 10\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "send"]
+            },
+            "description": "Envía monedas digitales de un usuario a otro.\n\n**Body requerido:**\n- `fromUserId` (string): ID del usuario que envía las monedas\n- `toUserId` (string): ID del usuario que recibe las monedas\n- `amount` (number): Monto a enviar (debe ser positivo)\n\n**Validaciones:**\n- El remitente debe tener saldo suficiente\n- No se puede enviar a uno mismo\n- El monto debe ser un número positivo"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('user_id')) {",
+                  "    pm.environment.set('user_id', 'user-001');",
+                  "}",
+                  "if (!pm.environment.get('user_id_2')) {",
+                  "    pm.environment.set('user_id_2', 'user-002');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es true', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Transacción tiene ID generado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.id).to.be.a('string');",
+                  "    pm.expect(json.data.id).to.include('tx-');",
+                  "});",
+                  "",
+                  "pm.test('Transacción tiene status completed', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.status).to.eql('completed');",
+                  "});",
+                  "",
+                  "pm.test('Transacción tiene los campos correctos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data).to.have.property('fromUserId');",
+                  "    pm.expect(json.data).to.have.property('toUserId');",
+                  "    pm.expect(json.data).to.have.property('amount');",
+                  "    pm.expect(json.data).to.have.property('currency');",
+                  "    pm.expect(json.data).to.have.property('timestamp');",
+                  "});",
+                  "",
+                  "pm.test('Monto enviado es 10', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.data.amount).to.eql(10);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Enviar micropago (saldo insuficiente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromUserId\": \"user-001\",\n  \"toUserId\": \"user-002\",\n  \"amount\": 999999\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "send"]
+            },
+            "description": "Intenta enviar más monedas de las que tiene el remitente. Debe retornar 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica saldo insuficiente', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('insuficiente');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Enviar micropago (mismo remitente y destinatario)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromUserId\": \"user-001\",\n  \"toUserId\": \"user-001\",\n  \"amount\": 10\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "send"]
+            },
+            "description": "Intenta enviar monedas a uno mismo. Debe retornar 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica que no puede enviarse a sí mismo', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('ti mismo');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Enviar micropago (monto inválido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromUserId\": \"user-001\",\n  \"toUserId\": \"user-002\",\n  \"amount\": -50\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "send"]
+            },
+            "description": "Intenta enviar un monto negativo. Debe retornar 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica monto inválido', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('positivo');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Enviar micropago (campos faltantes)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromUserId\": \"user-001\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "send"]
+            },
+            "description": "Intenta enviar un pago sin todos los campos requeridos. Debe retornar 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta success es false', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.success).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Mensaje indica campos requeridos', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.message).to.include('requeridos');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
