@@ -2,7 +2,7 @@
 
 API REST para el manejo de micropagos con monedas digitales. Construida con Node.js + Express.
 
-Usada como **código fuente de práctica** en el Laboratorio Clase 2: *Misión CoinDash* del **Módulo 2** del curso de Integración y Despliegue Continuo.
+Usada como **código fuente de práctica** en el Laboratorio Clase 2: *Misión CoinDash* del **Módulo 2** del curso de Integración y Despliegue Continuo. weewwer
 
 ---
 
