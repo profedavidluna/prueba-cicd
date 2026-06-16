@@ -222,3 +222,4 @@ cp .env.example .env
 | PORT            | Puerto del servidor (3000) | No        |
 | NODE_ENV        | Entorno de ejecución       | No        |
 | API_SECRET_KEY  | Llave secreta de la API    | Solo prod |
+pipeline restart Tue Mar  3 03:14:14 UTC 2026
